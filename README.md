@@ -13,4 +13,4 @@
 - [ ] Library
 
 ### Credits
-Thanks to MangaDEX whose API this app uses
+Thanks to [MangaDEX](https://mangadex.org/) whose API this app uses
