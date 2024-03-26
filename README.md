@@ -3,6 +3,7 @@
 - [x] Latest Updated
 - [x] Trending
 - [x] Recently Added
+- [x] Popular
 - [x] Finished
 - [x] Preview
 - [x] Detail info
