@@ -23,9 +23,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,27 +39,39 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.mangareaderui.MainViewModel
 import com.example.mangareaderui.R
-import com.example.mangareaderui.domain.model.MangaModel
 import com.example.mangareaderui.screens.explorescreen.SearchWidgetState
 import com.example.mangareaderui.screens.homescreen.components.BannerDisplays
 import com.example.mangareaderui.screens.homescreen.components.FinishedDisplays
 import com.example.mangareaderui.screens.homescreen.components.LatestUpdatesDisplays
-import com.example.mangareaderui.screens.homescreen.components.PopularDisplays
+import com.example.mangareaderui.screens.homescreen.components.PopularDisplay
 import com.example.mangareaderui.screens.homescreen.components.RecentlyAddedDisplays
 import com.example.mangareaderui.screens.mainscreen.BottomNavigationScreens
 
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "MutableCollectionMutableState")
 @Composable
 fun HomeScreen(
     navController: NavHostController,
     mainViewModel: MainViewModel
 ) {
-    val latestUpdatedMangas: MutableList<MangaModel> = mainViewModel.latestUpdatedManga.value
-    val finishedMangas: MutableList<MangaModel> = mainViewModel.finishedManga.value
-    val recentlyAddedMangas: MutableList<MangaModel> = mainViewModel.recentlyAddedManga.value
-    val trendyMangas: MutableList<MangaModel> = mainViewModel.trendyManga.value
+    mainViewModel.setScreenSize(LocalContext.current.resources.displayMetrics.widthPixels, LocalContext.current.resources.displayMetrics.heightPixels)
+
+    val latestUpdatedMangas by rememberSaveable {
+        mutableStateOf(mainViewModel.latestUpdatedManga.value!!)
+    }
+    val finishedMangas by rememberSaveable {
+        mutableStateOf(mainViewModel.finishedManga.value!!)
+    }
+    val trendyMangas by rememberSaveable {
+        mutableStateOf(mainViewModel.trendyManga.value!!)
+    }
+    val recentlyAddedMangas by rememberSaveable {
+        mutableStateOf(mainViewModel.recentlyAddedManga.value!!)
+    }
+    val popularMangas by rememberSaveable {
+        mutableStateOf(mainViewModel.popularManga.value!!)
+    }
 
     Scaffold {
         LazyColumn(contentPadding = PaddingValues(bottom = 50.dp)) {
@@ -93,7 +109,7 @@ fun HomeScreen(
                 LatestUpdatesDisplays(mangas = latestUpdatedMangas, mainViewModel = mainViewModel, navController = navController)
             }
             item {
-                PopularDisplays()
+                PopularDisplay(mangas = popularMangas, mainViewModel = mainViewModel, navController = navController)
             }
             item {
                 RecentlyAddedDisplays(mangas = recentlyAddedMangas, mainViewModel = mainViewModel, navController = navController)

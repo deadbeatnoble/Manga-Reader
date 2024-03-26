@@ -3,6 +3,7 @@ package com.example.mangareaderui.network
 import com.example.mangareaderui.network.model.author.AuthorResponse
 import com.example.mangareaderui.network.model.chapterdata.ChapterDataResponse
 import com.example.mangareaderui.network.model.chapterdetail.ChapterDetailResponse
+import com.example.mangareaderui.network.model.popular.PopularMangaResponse
 import com.example.retrofit.network.model.chapterlist.ChapterListResponse
 import com.example.retrofit.network.model.coverart.CoverArtResponse
 import com.example.retrofit.network.model.finished.FinishedMangaResponse
@@ -89,6 +90,14 @@ interface RetrofitService {
         @Query("hasAvailableChapters") hasAvailableChapters: String = "true",
         @Query("createdAtSince") createdAtSince: String = "2024-03-00T21:00:00"
     ): TrendyMangaResponse
+
+    @GET("manga")
+    suspend fun getPopularMangas(
+        @Query("limit") limit: Int = 10,
+        @Query("contentRating[]") contentRating: List<String> = listOf("safe","suggestive"),
+        @Query("hasAvailableChapters") hasAvailableChapters: String = "true",
+        @Query("order[followedCount]") order: String = "desc",
+    ): PopularMangaResponse
 
     @GET("manga")
     suspend fun getSearchedManga(

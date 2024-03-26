@@ -48,6 +48,9 @@ android {
 
 dependencies {
 
+    //live data
+    implementation "androidx.compose.runtime:runtime-livedata:1.0.0-beta01"
+
     //FlowLayout
     implementation "com.google.accompanist:accompanist-flowlayout:0.20.0"
 

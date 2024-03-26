@@ -5,12 +5,38 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.mangareaderui.domain.model.ChapterModel
 import com.example.mangareaderui.domain.model.MangaModel
+import com.example.mangareaderui.network.requests.FetchAuthorDetail
+import com.example.mangareaderui.network.requests.FetchCoverArt
+import com.example.mangareaderui.network.requests.FetchFinishedManga
+import com.example.mangareaderui.network.requests.FetchLatestUpdates
+import com.example.mangareaderui.network.requests.FetchMangaDetails
+import com.example.mangareaderui.network.requests.FetchPopularManga
+import com.example.mangareaderui.network.requests.FetchRecentlyAddedManga
+import com.example.mangareaderui.network.requests.FetchTrendyManga
 import com.example.mangareaderui.screens.explorescreen.SearchWidgetState
+import com.example.mangareaderui.screens.mainscreen.getMangaAuthor
+import com.example.mangareaderui.screens.mainscreen.getMangaCoverArtId
+import com.example.mangareaderui.screens.mainscreen.getMangaDescription
+import com.example.mangareaderui.screens.mainscreen.getMangaName
+import com.example.mangareaderui.screens.mainscreen.getMangaTags
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.launch
 
 class MainViewModel: ViewModel() {
+    private val _screenWidth: MutableState<Int> =
+        mutableStateOf(value = 0)
+    val screenWidth: State<Int> = _screenWidth
+
+    private val _screenHeight: MutableState<Int> =
+        mutableStateOf(value = 0)
+    val screenHeight: State<Int> = _screenHeight
+
     private val _searchWidgetUiState: MutableState<SearchWidgetState> =
         mutableStateOf(value = SearchWidgetState.CLOSED)
     val searchWidgetUiState: State<SearchWidgetState> = _searchWidgetUiState
@@ -24,84 +50,89 @@ class MainViewModel: ViewModel() {
     val isSearchingState: State<Boolean> = _isSearchingState
 
     @SuppressLint("MutableCollectionMutableState")
-    private val _latestUpdatedManga: MutableState<MutableList<MangaModel>> =
-        mutableStateOf(value = mutableStateListOf<MangaModel>().apply {
-            repeat(10) {
-                add(
-                    MangaModel(
-                        id = null,
-                        name = null,
-                        coverArtUrl = null,
-                        genre = null,
-                        description = null,
-                        author = null,
-                        status = null,
-                        chapters = null
-                    )
-                )
-            }
-        })
-    val latestUpdatedManga: State<MutableList<MangaModel>> = _latestUpdatedManga
+    private val _latestUpdatedManga = MutableLiveData<MutableList<MangaModel>>().apply {
+        value = MutableList(10) {
+            MangaModel(
+                id = null,
+                name = null,
+                coverArtUrl = null,
+                genre = null,
+                description = null,
+                author = null,
+                status = null,
+                chapters = null
+            )
+        }
+    }
+    val latestUpdatedManga: LiveData<MutableList<MangaModel>> = _latestUpdatedManga
 
     @SuppressLint("MutableCollectionMutableState")
-    private val _finishedManga: MutableState<MutableList<MangaModel>> =
-        mutableStateOf(value = mutableStateListOf<MangaModel>().apply {
-            repeat(10) {
-                add(
-                    MangaModel(
-                        id = null,
-                        name = null,
-                        coverArtUrl = null,
-                        genre = null,
-                        description = null,
-                        author = null,
-                        status = null,
-                        chapters = null
-                    )
-                )
-            }
-        })
-    val finishedManga: State<MutableList<MangaModel>> = _finishedManga
+    private val _finishedManga = MutableLiveData<MutableList<MangaModel>>().apply {
+        value = MutableList(10) {
+            MangaModel(
+                id = null,
+                name = null,
+                coverArtUrl = null,
+                genre = null,
+                description = null,
+                author = null,
+                status = null,
+                chapters = null
+            )
+        }
+    }
+    val finishedManga: LiveData<MutableList<MangaModel>> = _finishedManga
 
     @SuppressLint("MutableCollectionMutableState")
-    private val _recentlyAddedManga: MutableState<MutableList<MangaModel>> =
-        mutableStateOf(value = mutableStateListOf<MangaModel>().apply {
-            repeat(10) {
-                add(
-                    MangaModel(
-                        id = null,
-                        name = null,
-                        coverArtUrl = null,
-                        genre = null,
-                        description = null,
-                        author = null,
-                        status = null,
-                        chapters = null
-                    )
-                )
-            }
-        })
-    val recentlyAddedManga: State<MutableList<MangaModel>> = _recentlyAddedManga
+    private val _recentlyAddedManga = MutableLiveData<MutableList<MangaModel>>().apply {
+        value = MutableList(10) {
+            MangaModel(
+                id = null,
+                name = null,
+                coverArtUrl = null,
+                genre = null,
+                description = null,
+                author = null,
+                status = null,
+                chapters = null
+            )
+        }
+    }
+    val recentlyAddedManga: LiveData<MutableList<MangaModel>> = _recentlyAddedManga
 
     @SuppressLint("MutableCollectionMutableState")
-    private val _trendyManga: MutableState<MutableList<MangaModel>> =
-        mutableStateOf(value = mutableStateListOf<MangaModel>().apply {
-            repeat(10) {
-                add(
-                    MangaModel(
-                        id = null,
-                        name = null,
-                        coverArtUrl = null,
-                        genre = null,
-                        description = null,
-                        author = null,
-                        status = null,
-                        chapters = null
-                    )
-                )
-            }
-        })
-    val trendyManga: State<MutableList<MangaModel>> = _trendyManga
+    private val _trendyManga = MutableLiveData<MutableList<MangaModel>>().apply {
+        value = MutableList(10) {
+            MangaModel(
+                id = null,
+                name = null,
+                coverArtUrl = null,
+                genre = null,
+                description = null,
+                author = null,
+                status = null,
+                chapters = null
+            )
+        }
+    }
+    val trendyManga: LiveData<MutableList<MangaModel>> = _trendyManga
+
+    @SuppressLint("MutableCollectionMutableState")
+    private val _popularManga = MutableLiveData<MutableList<MangaModel>>().apply {
+        value = MutableList(10) {
+            MangaModel(
+                id = null,
+                name = null,
+                coverArtUrl = null,
+                genre = null,
+                description = null,
+                author = null,
+                status = null,
+                chapters = null
+            )
+        }
+    }
+    val popularManga: LiveData<MutableList<MangaModel>> = _popularManga
 
     @SuppressLint("MutableCollectionMutableState")
     private val _searchedManga: MutableState<MutableList<MangaModel>> =
@@ -160,12 +191,19 @@ class MainViewModel: ViewModel() {
     private val _trendyMangaIndex: MutableState<Int> =
         mutableStateOf(value = 0)
 
+    private val _popularMangaIndex: MutableState<Int> =
+        mutableStateOf(value = 0)
+
     private val _searchedMangaIndex: MutableState<Int> =
         mutableStateOf(value = 0)
 
 
     //variable declarations are above and function declarations are below
 
+    fun setScreenSize(width: Int, height: Int) {
+        _screenWidth.value = width
+        _screenHeight.value = height
+    }
 
     fun updateSearchWidgetState(newValue: SearchWidgetState) {
         _searchWidgetUiState.value = newValue
@@ -181,25 +219,31 @@ class MainViewModel: ViewModel() {
 
     fun loadLatestUpdatedManga(newValue: MangaModel) {
         if (_latestUpdatedMangaIndex.value < 10) {
-            _latestUpdatedManga.value[_latestUpdatedMangaIndex.value] = newValue
+            _latestUpdatedManga.value?.set(_latestUpdatedMangaIndex.value, newValue)
         }
     }
 
     fun loadFinishedManga(newValue: MangaModel) {
         if (_finishedMangaIndex.value < 10) {
-            _finishedManga.value[_finishedMangaIndex.value] = newValue
+            _finishedManga.value?.set(_finishedMangaIndex.value, newValue)
         }
     }
 
     fun loadRecentlyAddedManga(newValue: MangaModel) {
         if (_recentlyAddedMangaIndex.value < 10) {
-            _recentlyAddedManga.value[_recentlyAddedMangaIndex.value] = newValue
+            _recentlyAddedManga.value?.set(_recentlyAddedMangaIndex.value, newValue)
         }
     }
 
     fun loadTrendyManga(newValue: MangaModel) {
         if (_trendyMangaIndex.value < 10) {
-            _trendyManga.value[_trendyMangaIndex.value] = newValue
+            _trendyManga.value?.set(_trendyMangaIndex.value, newValue)
+        }
+    }
+
+    fun loadPopularManga(newValue: MangaModel) {
+        if (_popularMangaIndex.value < 10) {
+            _popularManga.value?.set(_popularMangaIndex.value, newValue)
         }
     }
 
@@ -265,8 +309,154 @@ class MainViewModel: ViewModel() {
         _trendyMangaIndex.value++
     }
 
+    fun updatePopularMangaIndex() {
+        _popularMangaIndex.value++
+    }
+
     fun updateSearchedMangaIndex() {
         _searchedMangaIndex.value++
     }
 
+    suspend fun fetchData() {
+        val latestUpdatedIds = FetchLatestUpdates().getLatestUpdatesIds()
+        val finishedIds = FetchFinishedManga().getFinishedManga()
+        val recentlyAddedIds = FetchRecentlyAddedManga().getRecentlyAddedManga()
+        val trendyIds = FetchTrendyManga().getTrendyManga()
+        val popularIds = FetchPopularManga().getPopularManga()
+
+        CoroutineScope(IO).launch {
+            for (id in latestUpdatedIds) {
+                val mangaResponse = FetchMangaDetails().getMangaDetail(id = id)
+
+                val coverArtUrl = FetchCoverArt().getCoverArt(
+                    mangaId = mangaResponse.data.id,
+                    coverId = getMangaCoverArtId(mangaResponse = mangaResponse)
+                )
+
+                val author = FetchAuthorDetail().getAuthorDetail(
+                    id = getMangaAuthor(mangaResponse)
+                )
+
+                loadLatestUpdatedManga(newValue = MangaModel(
+                    id = id,
+                    name = getMangaName(mangaResponse = mangaResponse),
+                    coverArtUrl = coverArtUrl,
+                    genre = getMangaTags(mangaResponse = mangaResponse),
+                    description = getMangaDescription(mangaResponse = mangaResponse),
+                    author = listOf(author),
+                    status = mangaResponse.data.attributes.status,
+                    chapters = emptyList()
+                )
+                )
+                updateLatestUpdatedMangaIndex()
+            }
+        }
+        CoroutineScope(IO).launch {
+            for (id in finishedIds) {
+                val mangaResponse = FetchMangaDetails().getMangaDetail(id = id)
+
+                val coverArtUrl = FetchCoverArt().getCoverArt(
+                    mangaId = mangaResponse.data.id,
+                    coverId = getMangaCoverArtId(mangaResponse = mangaResponse)
+                )
+
+                val author = FetchAuthorDetail().getAuthorDetail(
+                    id = getMangaAuthor(mangaResponse)
+                )
+
+                loadFinishedManga(newValue = MangaModel(
+                    id = id,
+                    name = getMangaName(mangaResponse = mangaResponse),
+                    coverArtUrl = coverArtUrl,
+                    genre = getMangaTags(mangaResponse = mangaResponse),
+                    description = getMangaDescription(mangaResponse = mangaResponse),
+                    author = listOf(author),
+                    status = mangaResponse.data.attributes.status,
+                    chapters = emptyList()
+                ))
+                updateFinishedMangaIndex()
+            }
+        }
+        CoroutineScope(IO).launch {
+            for (id in recentlyAddedIds) {
+                val mangaResponse = FetchMangaDetails().getMangaDetail(id = id)
+
+                val coverArtUrl = FetchCoverArt().getCoverArt(
+                    mangaId = mangaResponse.data.id,
+                    coverId = getMangaCoverArtId(mangaResponse = mangaResponse)
+                )
+
+                val author = FetchAuthorDetail().getAuthorDetail(
+                    id = getMangaAuthor(mangaResponse)
+                )
+
+
+                loadRecentlyAddedManga(newValue = MangaModel(
+                    id = id,
+                    name = getMangaName(mangaResponse = mangaResponse),
+                    coverArtUrl = coverArtUrl,
+                    genre = getMangaTags(mangaResponse = mangaResponse),
+                    description = getMangaDescription(mangaResponse = mangaResponse),
+                    author = listOf(author),
+                    status = mangaResponse.data.attributes.status,
+                    chapters = emptyList()
+                ))
+                updateRecentlyAddedMangaIndex()
+            }
+        }
+        CoroutineScope(IO).launch {
+            for (id in trendyIds) {
+                val mangaResponse = FetchMangaDetails().getMangaDetail(id = id)
+
+                val coverArtUrl = FetchCoverArt().getCoverArt(
+                    mangaId = mangaResponse.data.id,
+                    coverId = getMangaCoverArtId(mangaResponse = mangaResponse)
+                )
+
+                val author = FetchAuthorDetail().getAuthorDetail(
+                    id = getMangaAuthor(mangaResponse)
+                )
+
+
+                loadTrendyManga(newValue = MangaModel(
+                    id = id,
+                    name = getMangaName(mangaResponse = mangaResponse),
+                    coverArtUrl = coverArtUrl,
+                    genre = getMangaTags(mangaResponse = mangaResponse),
+                    description = getMangaDescription(mangaResponse = mangaResponse),
+                    author = listOf(author),
+                    status = mangaResponse.data.attributes.status,
+                    chapters = emptyList()
+                ))
+                updateTrendyMangaIndex()
+            }
+        }
+        CoroutineScope(IO).launch {
+            for (id in popularIds) {
+                val mangaResponse = FetchMangaDetails().getMangaDetail(id = id)
+
+                val coverArtUrl = FetchCoverArt().getCoverArt(
+                    mangaId = mangaResponse.data.id,
+                    coverId = getMangaCoverArtId(mangaResponse = mangaResponse)
+                )
+
+                val author = FetchAuthorDetail().getAuthorDetail(
+                    id = getMangaAuthor(mangaResponse)
+                )
+
+
+                loadPopularManga(newValue = MangaModel(
+                    id = id,
+                    name = getMangaName(mangaResponse = mangaResponse),
+                    coverArtUrl = coverArtUrl,
+                    genre = getMangaTags(mangaResponse = mangaResponse),
+                    description = getMangaDescription(mangaResponse = mangaResponse),
+                    author = listOf(author),
+                    status = mangaResponse.data.attributes.status,
+                    chapters = emptyList()
+                ))
+                updatePopularMangaIndex()
+            }
+        }
+    }
 }

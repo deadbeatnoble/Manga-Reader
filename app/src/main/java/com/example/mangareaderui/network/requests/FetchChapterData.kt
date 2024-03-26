@@ -17,7 +17,7 @@ class FetchChapterData {
         hash = response.chapter.hash
 
         for (data in response.chapter.data) {
-            chapterPageUrlList.add("$baseUrl /data/ $hash / $data")
+            chapterPageUrlList.add("$baseUrl/data/$hash/$data")
         }
 
         return chapterPageUrlList

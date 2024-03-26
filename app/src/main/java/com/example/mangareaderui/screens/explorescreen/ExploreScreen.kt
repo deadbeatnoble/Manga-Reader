@@ -21,8 +21,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -55,7 +57,9 @@ fun ExploreScreen(
     navController: NavHostController,
     mainViewModel: MainViewModel
 ) {
-    val searchWidgetState by mainViewModel.searchWidgetUiState
+    val searchWidgetState by rememberSaveable{
+        mutableStateOf(value = mainViewModel.searchWidgetUiState)
+    }
     val searchTextState by mainViewModel.searchTextUiState
     val isSearchingState by mainViewModel.isSearchingState
 
@@ -100,7 +104,7 @@ fun ExploreScreen(
     Scaffold(
         topBar = {
             ExploreAppBar(
-                searchWidgetState = searchWidgetState,
+                searchWidgetState = searchWidgetState.value,
                 searchTextState = searchTextState,
                 onTextChange = {
                     mainViewModel.updateSearchTextState(newValue = it)
@@ -123,7 +127,7 @@ fun ExploreScreen(
             )
         }
     ) {
-        if (searchWidgetState == SearchWidgetState.CLOSED) {
+        if (searchWidgetState.value == SearchWidgetState.CLOSED) {
             Box(
                 modifier = Modifier
                     .fillMaxSize(),
