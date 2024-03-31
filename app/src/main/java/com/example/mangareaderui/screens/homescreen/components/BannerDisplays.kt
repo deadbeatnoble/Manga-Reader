@@ -25,6 +25,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -57,6 +59,8 @@ fun BannerDisplays(
     navController: NavHostController,
     mainViewModel: MainViewModel
 ) {
+    val trendyMangasError by mainViewModel.trendyMangasError.collectAsState()
+
     val currentIndex = remember {
         mutableStateOf(0)
     }
@@ -68,16 +72,21 @@ fun BannerDisplays(
         }
     }
 
-    if (mangas[currentIndex.value].id != null) {
-        BannerLayout(
-            mangas = mangas,
-            currentIndex = currentIndex,
-            navController = navController,
-            mainViewModel = mainViewModel
-        )
+    if (trendyMangasError.isEmpty()) {
+        if (mangas[currentIndex.value].id != null) {
+            BannerLayout(
+                mangas = mangas,
+                currentIndex = currentIndex,
+                navController = navController,
+                mainViewModel = mainViewModel
+            )
+        } else {
+            BannerDisplaysShimmerEffect()
+        }
     } else {
-        BannerDisplaysShimmerEffect()
+        Text(text = trendyMangasError, color = Color.Red)
     }
+
 }
 
 @OptIn(ExperimentalCoilApi::class)

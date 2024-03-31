@@ -57,20 +57,21 @@ fun HomeScreen(
 ) {
     mainViewModel.setScreenSize(LocalContext.current.resources.displayMetrics.widthPixels, LocalContext.current.resources.displayMetrics.heightPixels)
 
-    val latestUpdatedMangas by rememberSaveable {
-        mutableStateOf(mainViewModel.latestUpdatedManga.value!!)
+    /*val latestUpdatedMangas by rememberSaveable {
+        mutableStateOf(mainViewModel.latestUpdatedManga.value)
     }
     val finishedMangas by rememberSaveable {
-        mutableStateOf(mainViewModel.finishedManga.value!!)
-    }
-    val trendyMangas by rememberSaveable {
-        mutableStateOf(mainViewModel.trendyManga.value!!)
+        mutableStateOf(mainViewModel.finishedManga.value)
     }
     val recentlyAddedMangas by rememberSaveable {
-        mutableStateOf(mainViewModel.recentlyAddedManga.value!!)
+        mutableStateOf(mainViewModel.recentlyAddedManga.value)
     }
     val popularMangas by rememberSaveable {
-        mutableStateOf(mainViewModel.popularManga.value!!)
+        mutableStateOf(mainViewModel.popularManga.value)
+    }*/
+
+    val trendyMangas by rememberSaveable {
+        mutableStateOf(mainViewModel.trendyManga.value!!)
     }
 
     Scaffold {
@@ -106,16 +107,16 @@ fun HomeScreen(
                 }
             }
             item {
-                LatestUpdatesDisplays(mangas = latestUpdatedMangas, mainViewModel = mainViewModel, navController = navController)
+                LatestUpdatesDisplays(mainViewModel = mainViewModel, navController = navController)
             }
             item {
-                PopularDisplay(mangas = popularMangas, mainViewModel = mainViewModel, navController = navController)
+                PopularDisplay(mainViewModel = mainViewModel, navController = navController)
             }
             item {
-                RecentlyAddedDisplays(mangas = recentlyAddedMangas, mainViewModel = mainViewModel, navController = navController)
+                RecentlyAddedDisplays(mainViewModel = mainViewModel, navController = navController)
             }
             item {
-                FinishedDisplays(mangas = finishedMangas, mainViewModel = mainViewModel, navController = navController)
+                FinishedDisplays(mainViewModel = mainViewModel, navController = navController)
             }
 
         }

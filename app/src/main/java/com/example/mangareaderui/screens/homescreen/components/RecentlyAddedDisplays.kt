@@ -26,6 +26,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,10 +51,13 @@ import com.example.mangareaderui.screens.mainscreen.MainScreenNavGraph
 
 @Composable
 fun RecentlyAddedDisplays(
-    mangas: List<MangaModel>,
     mainViewModel: MainViewModel,
     navController: NavHostController
 ) {
+    val recentlyAddedManga by mainViewModel.recentlyAddedManga.collectAsState()
+    val isLoading by mainViewModel.isRecentlyAddedMangasLoading.collectAsState()
+    val recentlyAddedMangasError by mainViewModel.recentlyAddedMangasError.collectAsState()
+
     Column {
         Row(
             modifier = Modifier
@@ -91,20 +96,34 @@ fun RecentlyAddedDisplays(
                 .background(Color.LightGray)
         )
         LazyRow {
-            items(mangas) { manga ->
-                if (manga.id != null && manga.name != null && manga.coverArtUrl != null) {
-                    SingleRecentlyUpdatedDisplays(
-                        manga = manga,
-                        mainViewModel = mainViewModel,
-                        navController = navController,
-                        modifier = Modifier
-                            .padding(top = 8.dp, bottom = 16.dp, start = 16.dp)
-                            .width(125.dp)
-                    )
+            if(!isLoading) {
+                if(recentlyAddedMangasError.isEmpty()) {
+                    items(recentlyAddedManga) { manga ->
+                        SingleRecentlyUpdatedDisplays(
+                            manga = manga,
+                            mainViewModel = mainViewModel,
+                            navController = navController,
+                            modifier = Modifier
+                                .padding(top = 8.dp, bottom = 16.dp, start = 16.dp)
+                                .width(125.dp)
+                        )
+                    }
                 } else {
-                    SingleRecentlyAddedShimmerEffectDisplays(modifier = Modifier
-                        .padding(top = 8.dp, bottom = 16.dp, start = 16.dp)
-                        .width(125.dp))
+                    item{ Text(text = recentlyAddedMangasError, color = Color.Red) }
+                }
+            } else {
+                if(recentlyAddedMangasError.isEmpty()) {
+                    item {
+                        repeat(10) {
+                            SingleRecentlyAddedShimmerEffectDisplays(
+                                modifier = Modifier
+                                    .padding(top = 8.dp, bottom = 16.dp, start = 16.dp)
+                                    .width(125.dp)
+                            )
+                        }
+                    }
+                } else {
+                    item{ Text(text = recentlyAddedMangasError, color = Color.Red) }
                 }
             }
         }

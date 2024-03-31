@@ -25,6 +25,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,10 +51,13 @@ import com.example.mangareaderui.screens.mainscreen.MainScreenNavGraph
 
 @Composable
 fun FinishedDisplays(
-    mangas: List<MangaModel>,
     mainViewModel: MainViewModel,
     navController: NavHostController
 ) {
+    val finishedMangas by mainViewModel.finishedManga.collectAsState()
+    val isLoading by mainViewModel.isFinishedMangasLoading.collectAsState()
+    val finishedMangasError by mainViewModel.finishedMangasError.collectAsState()
+
     Column {
         Row(
             modifier = Modifier
@@ -91,20 +96,32 @@ fun FinishedDisplays(
                 .background(Color.LightGray)
         )
         LazyRow {
-            items(mangas) { manga ->
-                if (manga.id != null && manga.name != null && manga.coverArtUrl != null) {
-                    SingleFinishedDisplays(
-                        manga = manga,
-                        mainViewModel = mainViewModel,
-                        navController = navController,
-                        modifier = Modifier
-                            .padding(top = 8.dp, bottom = 16.dp, start = 16.dp)
-                            .width(125.dp)
-                    )
+            if (!isLoading) {
+                if(finishedMangasError.isEmpty()) {
+                    items(finishedMangas) { manga ->
+                        SingleFinishedDisplays(
+                            manga = manga,
+                            mainViewModel = mainViewModel,
+                            navController = navController,
+                            modifier = Modifier
+                                .padding(top = 8.dp, bottom = 16.dp, start = 16.dp)
+                                .width(125.dp)
+                        )
+                    }
                 } else {
-                    SingleFinishedShimmerEffectDisplays(modifier = Modifier
-                        .padding(top = 8.dp, bottom = 16.dp, start = 16.dp)
-                        .width(125.dp))
+                    item{ Text(text = finishedMangasError, color = Color.Red) }
+                }
+            } else {
+                if (finishedMangasError.isEmpty()) {
+                    item {
+                        repeat(10) {
+                            SingleFinishedShimmerEffectDisplays(modifier = Modifier
+                                .padding(top = 8.dp, bottom = 16.dp, start = 16.dp)
+                                .width(125.dp))
+                        }
+                    }
+                } else {
+                    item{ Text(text = finishedMangasError, color = Color.Red) }
                 }
             }
         }

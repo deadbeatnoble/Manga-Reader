@@ -51,6 +51,7 @@ import com.example.mangareaderui.screens.mainscreen.MainScreenNavGraph
 
 @Composable
 fun SearchedResultDisplay(
+    searchedMangasError: String,
     mainViewModel: MainViewModel,
     navController: NavHostController,
     mangas: List<MangaModel>
@@ -64,13 +65,17 @@ fun SearchedResultDisplay(
                     .fillMaxWidth()
             )
         }
-        items(mangas) { manga ->
-            if (manga.id != null && manga.name != null && manga.coverArtUrl != null) {
-                SingleSearchedResult(mainViewModel = mainViewModel, navController = navController, manga = manga)
-            } else {
-                SingleSearchedResultShimmerEffect()
+        if (searchedMangasError.isEmpty()) {
+            items(mangas) { manga ->
+                if (manga.id != null && manga.name != null && manga.coverArtUrl != null) {
+                    SingleSearchedResult(mainViewModel = mainViewModel, navController = navController, manga = manga)
+                } else {
+                    SingleSearchedResultShimmerEffect()
+                }
+                Spacer(modifier = Modifier.height(8.dp))
             }
-            Spacer(modifier = Modifier.height(8.dp))
+        } else {
+            item{ Text(text = searchedMangasError, color = Color.Red) }
         }
     }
 }

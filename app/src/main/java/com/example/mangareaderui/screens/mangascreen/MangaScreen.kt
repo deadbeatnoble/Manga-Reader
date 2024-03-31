@@ -26,8 +26,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -37,6 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -49,17 +52,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.mangareaderui.MainViewModel
 import com.example.mangareaderui.R
-import com.example.mangareaderui.domain.model.ChapterModel
-import com.example.mangareaderui.network.requests.FetchChapterData
-import com.example.mangareaderui.network.requests.FetchChapterDetail
-import com.example.mangareaderui.network.requests.FetchChapterList
 import com.example.mangareaderui.screens.mangascreen.components.ChapterListDisplay
 import com.example.mangareaderui.screens.mangascreen.components.DescriptionDisplay
 import com.example.mangareaderui.screens.mangascreen.components.GenreListDisplay
 import com.example.mangareaderui.screens.mangascreen.components.MangaDetailDisplay
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -70,34 +68,16 @@ fun MangaScreen(
     val scope = rememberCoroutineScope()
 
     val manga = mainViewModel.mangaDetail.value
-    var chaptersId by remember {
-        mutableStateOf(emptyList<String>())
+    val chapterList by remember {
+        mutableStateOf(mainViewModel.chapterList.value)
+    }
+    var chapterListError by remember {
+        mutableStateOf(mainViewModel.chapterListError.value)
     }
 
     LaunchedEffect(true) {
-        chaptersId = FetchChapterList().getChapterList(manga.id!!)
-
-        scope.launch {
-            val updatedChapterModelList = mutableListOf<ChapterModel>()
-
-            for (chapterId in chaptersId) {
-                val chapterData = FetchChapterDetail().getChapterDetail(chapterId)
-
-                Log.e("CHAPTER_DATA", chapterData.data.id)
-
-                updatedChapterModelList.add(
-                    ChapterModel(
-                        id = chapterId,
-                        title = chapterData.data.attributes.title ?: "",
-                        chapterPagesImageUrls = FetchChapterData().getChapterData(chapterId),
-                        chapter = chapterData.data.attributes.chapter ?: "",
-                        pages = chapterData.data.attributes.pages ?: 0,
-                        date = chapterData.data.attributes.updatedAt ?: ""
-                    )
-                )
-            }
-            mainViewModel.loadChapterList(updatedChapterModelList)
-        }
+        mainViewModel.fetchChapterListData(mangaId = manga.id!!)
+        Log.e("CHAPTER_DATA_LIST", mainViewModel.chapterList.value.size.toString())
     }
 
     if (manga.id != null && manga.name != null && manga.coverArtUrl != null) {
@@ -120,24 +100,29 @@ fun MangaScreen(
                 item {
                     DescriptionDisplay(description = manga.description ?: "<No Description!>", modifier = Modifier.padding(horizontal = 16.dp))
                 }
-                items(mainViewModel.chapterList.value) { chapter ->
-                    if (chapter != null) {
+                if (chapterList.isNotEmpty()) {
+                    items(chapterList) { chapter ->
                         ChapterListDisplay(
                             mainViewModel = mainViewModel,
                             navController = navController,
                             chapter = chapter,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
-                    } else {
-                        repeat(3) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(100.dp)
-                                    .padding(8.dp)
-                                    .background(Color.LightGray)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
+                    }
+                } else if (mainViewModel.chapterListError.value.isNotEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column {
+                                Text(text = mainViewModel.chapterListError.value)
+                                Button(onClick = { /*TODO*/ }) {
+                                    Text(text = "Retry")
+                                }
+                            }
                         }
                     }
                 }

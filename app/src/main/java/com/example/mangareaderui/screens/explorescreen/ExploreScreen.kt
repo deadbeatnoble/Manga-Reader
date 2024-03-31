@@ -20,6 +20,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,15 +41,10 @@ import androidx.navigation.compose.rememberNavController
 import com.example.mangareaderui.MainViewModel
 import com.example.mangareaderui.R
 import com.example.mangareaderui.domain.model.MangaModel
-import com.example.mangareaderui.network.requests.FetchAuthorDetail
-import com.example.mangareaderui.network.requests.FetchCoverArt
-import com.example.mangareaderui.network.requests.FetchMangaDetails
-import com.example.mangareaderui.network.requests.FetchSearchedManga
 import com.example.mangareaderui.screens.explorescreen.components.SearchedResultDisplay
 import com.example.mangareaderui.screens.homescreen.HomeAppBar
 import com.example.retrofit.network.model.mangadetail.MangaDetailResponse
 import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.launch
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -67,37 +63,11 @@ fun ExploreScreen(
 
     val scope = rememberCoroutineScope()
 
+    val searchedMangasError by mainViewModel.searchedMangasError.collectAsState()
+
     if (isSearchingState) {
         LaunchedEffect(true) {
-            val searchedIds = FetchSearchedManga().getSearchedManga(searchTextState.trim())
-
-            scope.launch {
-                for (id in searchedIds) {
-                    val mangaResponse = FetchMangaDetails().getMangaDetail(id = id)
-
-                    val coverArtUrl = FetchCoverArt().getCoverArt(
-                        mangaId = mangaResponse.data.id,
-                        coverId = getMangaCoverArtId(mangaResponse = mangaResponse)
-                    )
-
-                    val author = FetchAuthorDetail().getAuthorDetail(
-                        id = getMangaAuthor(mangaResponse)
-                    )
-
-                    mainViewModel.loadSearchedManga(newValue = MangaModel(
-                        id = id,
-                        name = getMangaName(mangaResponse = mangaResponse),
-                        coverArtUrl = coverArtUrl,
-                        genre = getMangaTags(mangaResponse = mangaResponse),
-                        description = getMangaDescription(mangaResponse = mangaResponse),
-                        author = listOf(author),
-                        status = mangaResponse.data.attributes.status,
-                        chapters = null
-                    ))
-                    mainViewModel.updateSearchedMangaIndex()
-                    mainViewModel.updateIsSearchingState(false)
-                }
-            }
+            mainViewModel.fetchSearchedMangas(title = searchTextState.trim(), scope = scope)
         }
     }
 
@@ -117,6 +87,7 @@ fun ExploreScreen(
                     mainViewModel.updateSearchWidgetState(SearchWidgetState.CLOSED)
                 },
                 onSearchClicked = {
+                    mainViewModel.updateSearchedMangaError()
                     scope.coroutineContext.cancelChildren()
                     mainViewModel.clearSearchedManga()
                     mainViewModel.updateIsSearchingState(true)
@@ -136,7 +107,7 @@ fun ExploreScreen(
                 Text(text = "explore")
             }
         } else {
-            SearchedResultDisplay(mainViewModel = mainViewModel, navController = navController, mangas = searchedMangas)
+            SearchedResultDisplay(searchedMangasError = searchedMangasError, mainViewModel = mainViewModel, navController = navController, mangas = searchedMangas)
         }
     }
 
