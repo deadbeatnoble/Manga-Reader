@@ -76,7 +76,7 @@ fun MangaScreen(
     }
 
     LaunchedEffect(true) {
-        mainViewModel.fetchChapterListData(mangaId = manga.id!!)
+        mainViewModel.fetchChapterListData(mangaId = manga.id!!, scope = scope)
         Log.e("CHAPTER_DATA_LIST", mainViewModel.chapterList.value.size.toString())
     }
 

@@ -12,6 +12,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mangareaderui.domain.model.ChapterModel
 import com.example.mangareaderui.domain.model.MangaModel
+import com.example.mangareaderui.network.model.chapterdetail.ChapterDetailResponse
 import com.example.mangareaderui.network.requests.FetchAuthorDetail
 import com.example.mangareaderui.network.requests.FetchChapterData
 import com.example.mangareaderui.network.requests.FetchChapterDetail
@@ -62,7 +63,7 @@ class MainViewModel: ViewModel() {
 
     @SuppressLint("MutableCollectionMutableState")
     private val _latestUpdatedManga = MutableStateFlow(
-        value = MutableList<MangaModel>(10) {
+        value = MutableList(10) {
             MangaModel(
                 id = null,
                 name = null,
@@ -85,7 +86,7 @@ class MainViewModel: ViewModel() {
 
     @SuppressLint("MutableCollectionMutableState")
     private val _finishedManga = MutableStateFlow(
-        value = MutableList<MangaModel>(10) {
+        value = MutableList(10) {
             MangaModel(
                 id = null,
                 name = null,
@@ -108,7 +109,7 @@ class MainViewModel: ViewModel() {
 
     @SuppressLint("MutableCollectionMutableState")
     private val _recentlyAddedManga = MutableStateFlow(
-        value = MutableList<MangaModel>(10) {
+        value = MutableList(10) {
             MangaModel(
                 id = null,
                 name = null,
@@ -325,9 +326,8 @@ class MainViewModel: ViewModel() {
         _mangaDetail.value = newValue
     }
 
-    fun loadChapterList(newValue: List<ChapterModel>) {
-        _chapterList.value.clear()
-        _chapterList.value.addAll(newValue)
+    fun loadChapterList(newValue: ChapterModel) {
+        _chapterList.value.add(newValue)
     }
 
     fun loadChapterListError(newValue: String) {
@@ -374,16 +374,46 @@ class MainViewModel: ViewModel() {
                                     override fun onSuccess(mangaResponse: MangaDetailResponse) {
 
                                         val coverArtUrl = async {
+                                            lateinit var url: String
+
                                             FetchCoverArt().getCoverArt(
                                                 mangaId = mangaResponse.data.id,
-                                                coverId = getMangaCoverArtId(mangaResponse = mangaResponse)
+                                                coverId = getMangaCoverArtId(mangaResponse = mangaResponse),
+                                                responseListener = object: FetchCoverArt.ResponseListener {
+                                                    override fun onSuccess(data: String) {
+                                                        url = data
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        url = ""
+                                                        Log.e(message,"LATEST UPDATED MANGA COVER ART")
+                                                    }
+
+                                                }
                                             )
+
+                                            return@async url
                                         }
 
                                         val author = async {
+                                            lateinit var name: String
+
                                             FetchAuthorDetail().getAuthorDetail(
-                                                id = getMangaAuthor(mangaResponse)
+                                                id = getMangaAuthor(mangaResponse),
+                                                responseListener = object: FetchAuthorDetail.ResponseListener {
+                                                    override fun onSuccess(data: String) {
+                                                        name = data
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        name = ""
+                                                        Log.e(message,"LATEST UPDATED MANGA AUTHOR")
+                                                    }
+
+                                                }
                                             )
+
+                                            return@async name
                                         }
 
                                         viewModelScope.launch {
@@ -403,7 +433,7 @@ class MainViewModel: ViewModel() {
                                     }
 
                                     override fun onError(message: String) {
-                                        Log.e(message,"LOADING! Not yet implemented")
+                                        Log.e(message,"LATEST UPDATED MANGA, LOADING...! Not yet implemented")
                                         _latestUpdatedMangasError.value = message
                                     }
 
@@ -415,7 +445,7 @@ class MainViewModel: ViewModel() {
                 }
 
                 override fun onError(message: String) {
-                    Log.e(message,"Not yet implemented")
+                    Log.e(message,"LATEST UPDATED MANGAS IDS! Not yet implemented")
                     _latestUpdatedMangasError.value = message
                 }
 
@@ -432,16 +462,46 @@ class MainViewModel: ViewModel() {
                                     override fun onSuccess(mangaResponse: MangaDetailResponse) {
 
                                         val coverArtUrl = async {
+                                            lateinit var url: String
+
                                             FetchCoverArt().getCoverArt(
                                                 mangaId = mangaResponse.data.id,
-                                                coverId = getMangaCoverArtId(mangaResponse = mangaResponse)
+                                                coverId = getMangaCoverArtId(mangaResponse = mangaResponse),
+                                                responseListener = object: FetchCoverArt.ResponseListener {
+                                                    override fun onSuccess(data: String) {
+                                                        url = data
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        url = ""
+                                                        Log.e(message,"FINISHED MANGA COVER ART")
+                                                    }
+
+                                                }
                                             )
+
+                                            return@async url
                                         }
 
                                         val author = async {
+                                            lateinit var name: String
+
                                             FetchAuthorDetail().getAuthorDetail(
-                                                id = getMangaAuthor(mangaResponse)
+                                                id = getMangaAuthor(mangaResponse),
+                                                responseListener = object: FetchAuthorDetail.ResponseListener {
+                                                    override fun onSuccess(data: String) {
+                                                        name = data
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        name = ""
+                                                        Log.e(message,"FINISHED MANGA AUTHOR")
+                                                    }
+
+                                                }
                                             )
+
+                                            return@async name
                                         }
 
                                         viewModelScope.launch {
@@ -461,7 +521,7 @@ class MainViewModel: ViewModel() {
                                     }
 
                                     override fun onError(message: String) {
-                                        Log.e(message,"LOADING! Not yet implemented")
+                                        Log.e(message,"FINISHED MANGA, LOADING...! Not yet implemented")
                                         _finishedMangasError.value = message
                                     }
 
@@ -474,7 +534,7 @@ class MainViewModel: ViewModel() {
                 }
 
                 override fun onError(message: String) {
-                    Log.e(message,"Not yet implemented")
+                    Log.e(message,"FINISHED MANGAS IDS! Not yet implemented")
                     _finishedMangasError.value = message
                 }
 
@@ -491,16 +551,46 @@ class MainViewModel: ViewModel() {
                                     override fun onSuccess(mangaResponse: MangaDetailResponse) {
 
                                         val coverArtUrl = async {
+                                            lateinit var url: String
+
                                             FetchCoverArt().getCoverArt(
                                                 mangaId = mangaResponse.data.id,
-                                                coverId = getMangaCoverArtId(mangaResponse = mangaResponse)
+                                                coverId = getMangaCoverArtId(mangaResponse = mangaResponse),
+                                                responseListener = object: FetchCoverArt.ResponseListener {
+                                                    override fun onSuccess(data: String) {
+                                                        url = data
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        url = ""
+                                                        Log.e(message,"RECENTLY ADDED MANGA COVER ART")
+                                                    }
+
+                                                }
                                             )
+
+                                            return@async url
                                         }
 
                                         val author = async {
+                                            lateinit var name: String
+
                                             FetchAuthorDetail().getAuthorDetail(
-                                                id = getMangaAuthor(mangaResponse)
+                                                id = getMangaAuthor(mangaResponse),
+                                                responseListener = object: FetchAuthorDetail.ResponseListener {
+                                                    override fun onSuccess(data: String) {
+                                                        name = data
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        name = ""
+                                                        Log.e(message,"RECENTLY ADDED MANGA AUTHOR")
+                                                    }
+
+                                                }
                                             )
+
+                                            return@async name
                                         }
 
                                         viewModelScope.launch {
@@ -520,7 +610,7 @@ class MainViewModel: ViewModel() {
                                     }
 
                                     override fun onError(message: String) {
-                                        Log.e(message,"LOADING! Not yet implemented")
+                                        Log.e(message,"RECENTLY ADDED MANGA, LOADING...! Not yet implemented")
                                         _recentlyAddedMangasError.value = message
                                     }
 
@@ -533,7 +623,7 @@ class MainViewModel: ViewModel() {
                 }
 
                 override fun onError(message: String) {
-                    Log.e(message,"Not yet implemented")
+                    Log.e(message,"RECENTLY ADDED MANGAS IDS! Not yet implemented")
                     _recentlyAddedMangasError.value = message
                 }
 
@@ -550,16 +640,46 @@ class MainViewModel: ViewModel() {
                                     override fun onSuccess(mangaResponse: MangaDetailResponse) {
 
                                         val coverArtUrl = async {
+                                            lateinit var url: String
+
                                             FetchCoverArt().getCoverArt(
                                                 mangaId = mangaResponse.data.id,
-                                                coverId = getMangaCoverArtId(mangaResponse = mangaResponse)
+                                                coverId = getMangaCoverArtId(mangaResponse = mangaResponse),
+                                                responseListener = object: FetchCoverArt.ResponseListener {
+                                                    override fun onSuccess(data: String) {
+                                                        url = data
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        url = ""
+                                                        Log.e(message,"TRENDY MANGA COVER ART")
+                                                    }
+
+                                                }
                                             )
+
+                                            return@async url
                                         }
 
                                         val author = async {
+                                            lateinit var name: String
+
                                             FetchAuthorDetail().getAuthorDetail(
-                                                id = getMangaAuthor(mangaResponse)
+                                                id = getMangaAuthor(mangaResponse),
+                                                responseListener = object: FetchAuthorDetail.ResponseListener {
+                                                    override fun onSuccess(data: String) {
+                                                        name = data
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        name = ""
+                                                        Log.e(message,"TRENDY MANGA AUTHOR")
+                                                    }
+
+                                                }
                                             )
+
+                                            return@async name
                                         }
 
                                         viewModelScope.launch {
@@ -578,7 +698,7 @@ class MainViewModel: ViewModel() {
                                     }
 
                                     override fun onError(message: String) {
-                                        Log.e(message,"LOADING! Not yet implemented")
+                                        Log.e(message,"TRENDY MANGA, LOADING...! Not yet implemented")
                                         _trendyMangasError.value = message
                                     }
                                 }
@@ -588,7 +708,7 @@ class MainViewModel: ViewModel() {
                 }
 
                 override fun onError(message: String) {
-                    Log.e(message,"Not yet implemented")
+                    Log.e(message,"TRENDY MANGAS IDS! Not yet implemented")
                     _trendyMangasError.value = message
                 }
 
@@ -605,16 +725,46 @@ class MainViewModel: ViewModel() {
                                     override fun onSuccess(mangaResponse: MangaDetailResponse) {
 
                                         val coverArtUrl = async {
+                                            lateinit var url: String
+
                                             FetchCoverArt().getCoverArt(
                                                 mangaId = mangaResponse.data.id,
-                                                coverId = getMangaCoverArtId(mangaResponse = mangaResponse)
+                                                coverId = getMangaCoverArtId(mangaResponse = mangaResponse),
+                                                responseListener = object: FetchCoverArt.ResponseListener {
+                                                    override fun onSuccess(data: String) {
+                                                        url = data
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        url = ""
+                                                        Log.e(message,"POPULAR MANGA COVER ART")
+                                                    }
+
+                                                }
                                             )
+
+                                            return@async url
                                         }
 
                                         val author = async {
+                                            lateinit var name: String
+
                                             FetchAuthorDetail().getAuthorDetail(
-                                                id = getMangaAuthor(mangaResponse)
+                                                id = getMangaAuthor(mangaResponse),
+                                                responseListener = object: FetchAuthorDetail.ResponseListener {
+                                                    override fun onSuccess(data: String) {
+                                                        name = data
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        name = ""
+                                                        Log.e(message,"POPULAR MANGA AUTHOR")
+                                                    }
+
+                                                }
                                             )
+
+                                            return@async name
                                         }
 
                                         viewModelScope.launch {
@@ -634,7 +784,7 @@ class MainViewModel: ViewModel() {
                                     }
 
                                     override fun onError(message: String) {
-                                        Log.e(message,"LOADING! Not yet implemented")
+                                        Log.e(message,"POPULAR MANGA, LOADING...! Not yet implemented")
                                         _popularMangasError.value = message
                                     }
 
@@ -647,7 +797,7 @@ class MainViewModel: ViewModel() {
                 }
 
                 override fun onError(message: String) {
-                    Log.e(message,"Not yet implemented")
+                    Log.e(message,"POPULAR MANGAS IDS! Not yet implemented")
                     _popularMangasError.value = message
                 }
 
@@ -671,20 +821,46 @@ class MainViewModel: ViewModel() {
                                     override fun onSuccess(mangaResponse: MangaDetailResponse) {
 
                                         val coverArtUrl = async {
+                                            lateinit var url: String
+
                                             FetchCoverArt().getCoverArt(
                                                 mangaId = mangaResponse.data.id,
-                                                coverId = com.example.mangareaderui.screens.explorescreen.getMangaCoverArtId(
-                                                    mangaResponse = mangaResponse
-                                                )
+                                                coverId = getMangaCoverArtId(mangaResponse = mangaResponse),
+                                                responseListener = object: FetchCoverArt.ResponseListener {
+                                                    override fun onSuccess(data: String) {
+                                                        url = data
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        url = ""
+                                                        Log.e(message,"SEARCHED MANGA COVER ART")
+                                                    }
+
+                                                }
                                             )
+
+                                            return@async url
                                         }
 
                                         val author = async {
+                                            lateinit var name: String
+
                                             FetchAuthorDetail().getAuthorDetail(
-                                                id = com.example.mangareaderui.screens.explorescreen.getMangaAuthor(
-                                                    mangaResponse
-                                                )
+                                                id = getMangaAuthor(mangaResponse),
+                                                responseListener = object: FetchAuthorDetail.ResponseListener {
+                                                    override fun onSuccess(data: String) {
+                                                        name = data
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        name = ""
+                                                        Log.e(message,"SEARCHED MANGA AUTHOR")
+                                                    }
+
+                                                }
                                             )
+
+                                            return@async name
                                         }
 
                                         CoroutineScope(IO).launch {
@@ -710,7 +886,7 @@ class MainViewModel: ViewModel() {
                                     }
 
                                     override fun onError(message: String) {
-                                        Log.e(message,"LOADING! Not yet implemented")
+                                        Log.e(message,"SEARCHED MANGA, LOADING...! Not yet implemented")
                                         _searchedMangasError.value = message
                                     }
 
@@ -721,7 +897,7 @@ class MainViewModel: ViewModel() {
                 }
 
                 override fun onError(message: String) {
-                    Log.e(message,"Not yet implemented")
+                    Log.e(message,"SEARCHED MANGAS IDS! Not yet implemented")
                     _searchedMangasError.value = message
                 }
 
@@ -730,39 +906,72 @@ class MainViewModel: ViewModel() {
     }
 
     suspend fun fetchChapterListData(
-        mangaId: String
+        mangaId: String,
+        scope: CoroutineScope
     ) {
         _chapterListError.value = ""
+        clearChapterList()
+
         FetchChapterList().getChapterList(
             id = mangaId,
             responseListener = object: FetchChapterList.ResponseListener {
                 override fun onSuccess(datas: MutableList<String>) {
-                    CoroutineScope(IO).launch {
-                        val chapterDataList = mutableListOf<ChapterModel>()
-
+                    scope.launch {
                         for (chapterId in datas) {
-                            val chapterData = FetchChapterDetail().getChapterDetail(id = chapterId)
+                            FetchChapterDetail().getChapterDetail(
+                                id = chapterId,
+                                responseListener = object: FetchChapterDetail.ResponseListener {
+                                    override fun onSuccess(data: ChapterDetailResponse) {
 
-                            chapterDataList.add(
-                                ChapterModel(
-                                    id = chapterId,
-                                    title = chapterData.data.attributes.title ?: "",
-                                    chapterPagesImageUrls = FetchChapterData().getChapterData(chapterId),
-                                    chapter = chapterData.data.attributes.chapter ?: "",
-                                    pages = chapterData.data.attributes.pages ?: 0,
-                                    date = chapterData.data.attributes.updatedAt ?: ""
-                                )
+                                        val chapterPageImageUrls = async {
+                                            lateinit var chapterPageImageUrlList: List<String>
+
+                                            FetchChapterData().getChapterData(
+                                                id = chapterId,
+                                                responseListener = object: FetchChapterData.ResponseListener {
+                                                    override fun onSuccess(datas: MutableList<String>) {
+                                                        chapterPageImageUrlList = datas
+                                                    }
+
+                                                    override fun onError(message: String) {
+                                                        chapterPageImageUrlList = listOf("")
+                                                        Log.e(message,"CHAPTER PAGE IMAGE URLS")
+                                                    }
+
+                                                }
+                                            )
+
+                                            return@async chapterPageImageUrlList
+                                        }
+
+                                        CoroutineScope(IO).launch {
+                                            val chapterData = ChapterModel(
+                                                id = chapterId,
+                                                title = data.data.attributes.title ?: "",
+                                                chapterPagesImageUrls = chapterPageImageUrls.await(),
+                                                chapter = data.data.attributes.chapter ?: "",
+                                                pages = data.data.attributes.pages ?: 0,
+                                                date = data.data.attributes.updatedAt ?: ""
+                                            )
+
+                                            Log.e("CHAPTER_DATA", chapterData.toString())
+                                            loadChapterList(newValue = chapterData)
+                                        }
+                                    }
+
+                                    override fun onError(message: String) {
+                                        Log.e(message,"CHAPTER DETAIL! Not yet implemented")
+                                    }
+
+                                }
                             )
-
-                            Log.e("CHAPTER_DATA", ChapterModel(id = chapterId, title = chapterData.data.attributes.title ?: "", chapterPagesImageUrls = FetchChapterData().getChapterData(chapterId), chapter = chapterData.data.attributes.chapter ?: "", pages = chapterData.data.attributes.pages ?: 0, date = chapterData.data.attributes.updatedAt ?: "").toString())
                         }
-
-                        Log.e("CHAPTER_DATA_LIST_SIZE", chapterDataList.size.toString())
-                        loadChapterList(newValue = chapterDataList)
+                        Log.e("CHAPTER_DATA_LIST_SIZE", _chapterList.value.size.toString())
                     }
                 }
 
                 override fun onError(message: String) {
+                    Log.e(message,"CHAPTER LIST IDS! Not yet implemented")
                     loadChapterListError(newValue = message)
                 }
 
