@@ -21,6 +21,7 @@ class FetchChapterList {
             for (volume in response.volumes.values) {
                 for (chapter in volume.chapters.values) {
                     chapterIdList.add(chapter.id)
+                    chapterIdList.addAll(chapter.others)
                 }
             }
 

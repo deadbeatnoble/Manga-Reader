@@ -6,5 +6,6 @@ data class ChapterModel(
     val chapterPagesImageUrls: List<String>?,
     val chapter: String?,
     val pages: Int?,
-    val date: String?
+    val date: String?,
+    val language: String?
 )

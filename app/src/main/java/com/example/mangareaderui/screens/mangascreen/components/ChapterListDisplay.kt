@@ -28,17 +28,23 @@ fun ChapterListDisplay(
             .fillMaxWidth()
             .height(75.dp)
             .clickable {
-                mainViewModel.clearChapterLinks()
-                mainViewModel.loadChapterLinks(chapter.chapterPagesImageUrls ?: emptyList())
+                mainViewModel.loadSelectedChapterId(chapter.id!!)
                 navController.navigate(DetailNavGraph.ChapterDisplayScreen.route)
             }
     ) {
+        Text(
+            text = chapter.language ?: "",
+            fontSize = 16.sp,
+            color = Color.LightGray
+        )
         Row(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            Text(text = "Chapter ${chapter.chapter}: ")
-            Text(text = chapter.title ?: "")
+            Text(text = "Chapter ${chapter.chapter}")
+            if (!chapter.title.isNullOrEmpty()) {
+                Text(text = ": ${chapter.title}")
+            }
         }
         Text(
             text = chapter.date ?: "2024-03-18",

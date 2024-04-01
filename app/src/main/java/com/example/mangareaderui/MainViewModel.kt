@@ -220,6 +220,9 @@ class MainViewModel: ViewModel() {
         mutableStateOf(value = "")
     val chapterListError: State<String> = _chapterListError
 
+    private val _selectedChapterId = MutableStateFlow(value = "")
+    val selectedChapterId: StateFlow<String> = _selectedChapterId
+
     @SuppressLint("MutableCollectionMutableState")
     private val _chapterLinks: State<MutableList<String>> =
         mutableStateOf(value = mutableStateListOf())
@@ -336,6 +339,10 @@ class MainViewModel: ViewModel() {
 
     fun clearChapterList() {
         _chapterList.value.clear()
+    }
+
+    fun loadSelectedChapterId(newValue: String) {
+        _selectedChapterId.value = newValue
     }
 
     fun loadChapterLinks(newValue: List<String>) {
@@ -923,35 +930,15 @@ class MainViewModel: ViewModel() {
                                 responseListener = object: FetchChapterDetail.ResponseListener {
                                     override fun onSuccess(data: ChapterDetailResponse) {
 
-                                        val chapterPageImageUrls = async {
-                                            lateinit var chapterPageImageUrlList: List<String>
-
-                                            FetchChapterData().getChapterData(
-                                                id = chapterId,
-                                                responseListener = object: FetchChapterData.ResponseListener {
-                                                    override fun onSuccess(datas: MutableList<String>) {
-                                                        chapterPageImageUrlList = datas
-                                                    }
-
-                                                    override fun onError(message: String) {
-                                                        chapterPageImageUrlList = listOf("")
-                                                        Log.e(message,"CHAPTER PAGE IMAGE URLS")
-                                                    }
-
-                                                }
-                                            )
-
-                                            return@async chapterPageImageUrlList
-                                        }
-
                                         CoroutineScope(IO).launch {
                                             val chapterData = ChapterModel(
                                                 id = chapterId,
                                                 title = data.data.attributes.title ?: "",
-                                                chapterPagesImageUrls = chapterPageImageUrls.await(),
+                                                chapterPagesImageUrls = emptyList(),
                                                 chapter = data.data.attributes.chapter ?: "",
                                                 pages = data.data.attributes.pages ?: 0,
-                                                date = data.data.attributes.updatedAt ?: ""
+                                                date = data.data.attributes.updatedAt ?: "",
+                                                language = data.data.attributes.translatedLanguage ?: ""
                                             )
 
                                             Log.e("CHAPTER_DATA", chapterData.toString())
@@ -973,6 +960,25 @@ class MainViewModel: ViewModel() {
                 override fun onError(message: String) {
                     Log.e(message,"CHAPTER LIST IDS! Not yet implemented")
                     loadChapterListError(newValue = message)
+                }
+
+            }
+        )
+    }
+
+    suspend fun fetchChapterPagesData(
+        chapterId: String
+    ) {
+        FetchChapterData().getChapterData(
+            id = chapterId,
+            responseListener = object: FetchChapterData.ResponseListener {
+                override fun onSuccess(datas: MutableList<String>) {
+                    loadChapterLinks(newValue = datas)
+                }
+
+                override fun onError(message: String) {
+                    loadChapterLinks(newValue = listOf(""))
+                    Log.e(message,"CHAPTER PAGE IMAGE URLS")
                 }
 
             }
