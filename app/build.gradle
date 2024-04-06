@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+
+    id 'kotlin-kapt'
 }
 
 android {
@@ -47,6 +49,14 @@ android {
 }
 
 dependencies {
+
+    //room
+    implementation "androidx.room:room-ktx:2.5.1"
+    kapt "androidx.room:room-compiler:2.5.1"
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+
+    //glide
+    implementation 'com.github.bumptech.glide:compose:1.0.0-alpha.1'
 
     //live data
     implementation "androidx.compose.runtime:runtime-livedata:1.0.0-beta01"

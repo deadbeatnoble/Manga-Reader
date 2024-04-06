@@ -34,6 +34,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -48,10 +49,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.mangareaderui.MainViewModel
 import com.example.mangareaderui.R
+import com.example.mangareaderui.domain.data.BookmarkEntity
+import com.example.mangareaderui.domain.data.BookmarkViewModel
 import com.example.mangareaderui.screens.mangascreen.components.ChapterListDisplay
 import com.example.mangareaderui.screens.mangascreen.components.DescriptionDisplay
 import com.example.mangareaderui.screens.mangascreen.components.GenreListDisplay
@@ -59,26 +64,33 @@ import com.example.mangareaderui.screens.mangascreen.components.MangaDetailDispl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "CoroutineCreationDuringComposition")
 @Composable
 fun MangaScreen(
     navController: NavHostController,
     mainViewModel: MainViewModel
 ) {
+
+    val context = LocalViewModelStoreOwner.current
+    val bookmarkViewModel: BookmarkViewModel = ViewModelProvider(context!!).get(BookmarkViewModel::class.java)
+
     val scope = rememberCoroutineScope()
 
     val manga = mainViewModel.mangaDetail.value
-    val chapterList by remember {
-        mutableStateOf(mainViewModel.chapterList.value)
-    }
+    val chapterList by mainViewModel.chapterList.collectAsState()
     var chapterListError by remember {
         mutableStateOf(mainViewModel.chapterListError.value)
     }
 
     LaunchedEffect(true) {
-        mainViewModel.fetchChapterListData(mangaId = manga.id!!, scope = scope)
+        bookmarkViewModel.isBookmarked(mangaId = manga.id!!)
+
+        mainViewModel.fetchChapterListData(mangaId = manga.id, scope = scope)
         Log.e("CHAPTER_DATA_LIST", mainViewModel.chapterList.value.size.toString())
     }
+
+    val isBookmarked by bookmarkViewModel.isBookmarkedState.collectAsState()
 
     if (manga.id != null && manga.name != null && manga.coverArtUrl != null) {
         Box(
@@ -90,7 +102,27 @@ fun MangaScreen(
                     .fillMaxSize()
             ) {
                 item {
-                    MangaDetailDisplay(manga = manga, scope = scope, navController = navController)
+                    MangaDetailDisplay(
+                        manga = manga,
+                        scope = scope,
+                        navController = navController,
+                        addToLibrary = {
+                            bookmarkViewModel.bookmarkOnClick(
+                                bookmarkEntity =
+                                    BookmarkEntity(
+                                        manga_id = manga.id,
+                                        manga_name = manga.name,
+                                        manga_description = manga.description ?: "",
+                                        manga_author = manga.author.toString(),
+                                        manga_coverArtUrl = manga.coverArtUrl,
+                                        manga_status = manga.status ?: "",
+                                        manga_genre = manga.genre.toString(),
+                                        manga_chapters = manga.chapters.toString()
+                                    )
+                            )
+                        },
+                        isBookmarked = isBookmarked
+                    )
                 }
                 item {
                     if (manga.genre != null) {

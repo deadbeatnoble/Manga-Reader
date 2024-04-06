@@ -9,11 +9,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -29,15 +29,13 @@ import com.example.retrofit.network.model.mangadetail.MangaDetailResponse
 @Composable
 fun MainScreen() {
     val navController: NavHostController = rememberNavController()
-    val mainViewModel = MainViewModel()
+    val mainViewModel: MainViewModel = viewModel()
+
+
 
     Scaffold(
         bottomBar = { BottomBar(navController = navController) }
     ) {
-
-        LaunchedEffect(true) {
-            mainViewModel.fetchData()
-        }
 
         BottomNavGraph(navController = navController, mainViewModel = mainViewModel)
 

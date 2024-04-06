@@ -55,10 +55,10 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun BannerDisplays(
-    mangas: List<MangaModel>,
     navController: NavHostController,
     mainViewModel: MainViewModel
 ) {
+    val trendyMangas by mainViewModel.trendyManga.collectAsState()
     val trendyMangasError by mainViewModel.trendyMangasError.collectAsState()
 
     val currentIndex = remember {
@@ -68,14 +68,14 @@ fun BannerDisplays(
     LaunchedEffect(Unit) {
         while (true) {
             delay(4000)
-            currentIndex.value = if (mangas[currentIndex.value].id != null) (currentIndex.value + 1) % mangas.size else currentIndex.value
+            currentIndex.value = if (trendyMangas[currentIndex.value].id != null) (currentIndex.value + 1) % trendyMangas.size else currentIndex.value
         }
     }
 
     if (trendyMangasError.isEmpty()) {
-        if (mangas[currentIndex.value].id != null) {
+        if (trendyMangas[currentIndex.value].id != null) {
             BannerLayout(
-                mangas = mangas,
+                mangas = trendyMangas,
                 currentIndex = currentIndex,
                 navController = navController,
                 mainViewModel = mainViewModel
@@ -134,7 +134,7 @@ fun BannerLayout(
                     )
                     onDrawWithContent {
                         drawContent()
-                        drawRect(gradient,blendMode = BlendMode.Multiply)
+                        drawRect(gradient, blendMode = BlendMode.Multiply)
                     }
                 }
                 .clickable {

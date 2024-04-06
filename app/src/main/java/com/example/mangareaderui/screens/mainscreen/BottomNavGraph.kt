@@ -27,7 +27,7 @@ fun BottomNavGraph(
             ExploreScreen(navController = navController,mainViewModel = mainViewModel)
         }
         composable(route = BottomNavigationScreens.Library.route) {
-            LibraryScreen()
+            LibraryScreen(navController = navController,mainViewModel = mainViewModel)
         }
         detailNavGraph(navController = navController, mainViewModel = mainViewModel)
     }

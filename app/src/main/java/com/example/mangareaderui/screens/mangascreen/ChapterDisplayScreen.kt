@@ -1,7 +1,6 @@
 package com.example.mangareaderui.screens.mangascreen
 
 import android.util.Log
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -21,14 +19,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
-
-import coil.annotation.ExperimentalCoilApi
-import coil.compose.ImagePainter
-import coil.compose.rememberImagePainter
-import coil.size.OriginalSize
+import androidx.compose.ui.layout.ContentScale
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
 import com.example.mangareaderui.MainViewModel
 
-@OptIn(ExperimentalCoilApi::class)
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun ChapterDisplayScreen(
     mainViewModel: MainViewModel
@@ -85,21 +81,12 @@ fun ChapterDisplayScreen(
                     .transformable(state)
             ) {
                 items(chapterPageImages) { pageImage ->
-                    val painter = rememberImagePainter(
-                        data = pageImage,
-                        builder = {
-                            size(OriginalSize)
-                        }
-                    )
-                    val painterState = painter.state
-                    Image(
-                        painter = painter,
+                    GlideImage(
+                        model = pageImage,
                         contentDescription = "Page Image",
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        contentScale = ContentScale.Fit
                     )
-                    if (painterState is ImagePainter.State.Loading){
-                        CircularProgressIndicator()
-                    }
                 }
             }
         }

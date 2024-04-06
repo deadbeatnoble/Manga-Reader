@@ -23,9 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -68,11 +65,11 @@ fun HomeScreen(
     }
     val popularMangas by rememberSaveable {
         mutableStateOf(mainViewModel.popularManga.value)
-    }*/
+    }
 
     val trendyMangas by rememberSaveable {
         mutableStateOf(mainViewModel.trendyManga.value!!)
-    }
+    }*/
 
     Scaffold {
         LazyColumn(contentPadding = PaddingValues(bottom = 50.dp)) {
@@ -82,7 +79,7 @@ fun HomeScreen(
                         .height(225.dp)
                         .fillMaxWidth()
                 ) {
-                    BannerDisplays(mangas = trendyMangas, navController = navController, mainViewModel = mainViewModel)
+                    BannerDisplays(navController = navController, mainViewModel = mainViewModel)
                     Row(
                         modifier = Modifier
                             .fillMaxSize()

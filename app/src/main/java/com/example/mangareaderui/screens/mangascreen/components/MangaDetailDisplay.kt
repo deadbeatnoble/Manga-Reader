@@ -29,6 +29,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -38,6 +40,7 @@ import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
 import coil.transform.BlurTransformation
 import coil.transform.GrayscaleTransformation
+import com.example.mangareaderui.R
 import com.example.mangareaderui.domain.model.MangaModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
@@ -47,7 +50,9 @@ import kotlinx.coroutines.cancelChildren
 fun MangaDetailDisplay(
     manga: MangaModel,
     scope: CoroutineScope,
-    navController: NavHostController
+    navController: NavHostController,
+    addToLibrary: () -> Unit,
+    isBookmarked: Boolean
 ) {
 
     val painter = rememberImagePainter(
@@ -66,6 +71,8 @@ fun MangaDetailDisplay(
             )
         }
     )
+
+    val icon = if (isBookmarked) R.drawable.bookmark_filled else R.drawable.bookmark_outline
 
     Box(
         modifier = Modifier
@@ -102,7 +109,8 @@ fun MangaDetailDisplay(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(25.dp)
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 IconButton(
                     onClick = {
@@ -116,6 +124,21 @@ fun MangaDetailDisplay(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = null,
                         tint = Color.White,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .size(15.dp)
+                    )
+                }
+
+                IconButton(
+                    onClick = addToLibrary,
+                    modifier = Modifier
+                        .background(Color.Transparent)
+                ) {
+                    Icon(
+                        painter = painterResource(id = icon),
+                        contentDescription = null,
+                        tint = colorResource(id = R.color.text),
                         modifier = Modifier
                             .fillMaxSize()
                             .size(15.dp)
