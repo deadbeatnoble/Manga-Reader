@@ -9,9 +9,8 @@
 - [x] Detail info
 - [x] Chapters list
 - [x] Chapter Preview
-- [ ] Saving reading progress
 - [ ] Night Mode
-- [ ] Library
+- [x] Library
 
 ### Credits
 Thanks to [MangaDEX](https://mangadex.org/) whose API this app uses
