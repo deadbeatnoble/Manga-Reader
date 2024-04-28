@@ -22,13 +22,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -36,16 +36,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import coil.annotation.ExperimentalCoilApi
 import coil.compose.rememberImagePainter
-import coil.transform.BlurTransformation
-import coil.transform.GrayscaleTransformation
 import com.example.mangareaderui.R
 import com.example.mangareaderui.domain.model.MangaModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun MangaDetailDisplay(
     manga: MangaModel,
@@ -66,8 +62,7 @@ fun MangaDetailDisplay(
         data = manga.coverArtUrl,
         builder = {
             transformations(
-                GrayscaleTransformation(),
-                BlurTransformation(LocalContext.current, 20f)
+
             )
         }
     )
@@ -85,6 +80,7 @@ fun MangaDetailDisplay(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
+                .blur(20.dp)
                 .drawWithCache {
                     val gradient = Brush.verticalGradient(
                         colors = listOf(

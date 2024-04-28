@@ -1,12 +1,13 @@
 package com.example.mangareaderui.screens.mainscreen
 
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
 import com.example.mangareaderui.MainViewModel
-import com.example.mangareaderui.screens.mangascreen.ChapterDisplayScreen
 import com.example.mangareaderui.screens.mangascreen.MangaScreen
+import com.example.mangareaderui.screens.mangascreen.PageListView
 
 fun NavGraphBuilder.detailNavGraph(
     navController: NavHostController,
@@ -20,7 +21,7 @@ fun NavGraphBuilder.detailNavGraph(
             MangaScreen(navController = navController, mainViewModel = mainViewModel)
         }
         composable(route = DetailNavGraph.ChapterDisplayScreen.route) {
-            ChapterDisplayScreen(mainViewModel = mainViewModel)
+            PageListView(context = LocalContext.current, mainViewModel = mainViewModel)
         }
     }
 }

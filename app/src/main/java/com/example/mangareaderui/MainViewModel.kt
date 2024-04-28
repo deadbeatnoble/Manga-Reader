@@ -1,6 +1,8 @@
 package com.example.mangareaderui
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -10,6 +12,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mangareaderui.domain.model.ChapterModel
 import com.example.mangareaderui.domain.model.MangaModel
+import com.example.mangareaderui.domain.model.Page
+import com.example.mangareaderui.domain.model.PageState
 import com.example.mangareaderui.network.model.chapterdetail.ChapterDetailResponse
 import com.example.mangareaderui.network.requests.FetchAuthorDetail
 import com.example.mangareaderui.network.requests.FetchChapterData
@@ -29,6 +33,8 @@ import com.example.mangareaderui.screens.mainscreen.getMangaCoverArtId
 import com.example.mangareaderui.screens.mainscreen.getMangaDescription
 import com.example.mangareaderui.screens.mainscreen.getMangaName
 import com.example.mangareaderui.screens.mainscreen.getMangaTags
+import com.example.mangareaderui.util.BitmapResult
+import com.example.mangareaderui.util.UrlConverter
 import com.example.retrofit.network.model.mangadetail.MangaDetailResponse
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.IO
@@ -39,14 +45,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class MainViewModel: ViewModel() {
-    private val _screenWidth: MutableState<Int> =
-        mutableStateOf(value = 0)
-    val screenWidth: State<Int> = _screenWidth
-
-    private val _screenHeight: MutableState<Int> =
-        mutableStateOf(value = 0)
-    val screenHeight: State<Int> = _screenHeight
-
     private val _searchWidgetUiState: MutableState<SearchWidgetState> =
         mutableStateOf(value = SearchWidgetState.CLOSED)
     val searchWidgetUiState: State<SearchWidgetState> = _searchWidgetUiState
@@ -223,9 +221,15 @@ class MainViewModel: ViewModel() {
     val selectedChapterId: StateFlow<String> = _selectedChapterId
 
     @SuppressLint("MutableCollectionMutableState")
-    private val _chapterLinks: State<MutableList<String>> =
-        mutableStateOf(value = mutableStateListOf())
-    val chapterLinks: State<List<String>> = _chapterLinks
+    private val _chapterLinks: MutableState<MutableList<String>> =
+        mutableStateOf(value = mutableListOf())
+
+    @SuppressLint("MutableCollectionMutableState")
+    private val _chapterPages = MutableStateFlow<MutableList<Page>>(
+        value = mutableStateListOf()
+    )
+    val chapterPages: StateFlow<List<Page>> = _chapterPages.asStateFlow()
+
 
     private val _latestUpdatedMangaIndex: MutableState<Int> =
         mutableStateOf(value = 0)
@@ -245,13 +249,10 @@ class MainViewModel: ViewModel() {
     private val _searchedMangaIndex: MutableState<Int> =
         mutableStateOf(value = 0)
 
+    var onUpdate = mutableStateOf(0)
+
 
     //variable declarations are above and function declarations are below
-
-    fun setScreenSize(width: Int, height: Int) {
-        _screenWidth.value = width
-        _screenHeight.value = height
-    }
 
     fun updateSearchWidgetState(newValue: SearchWidgetState) {
         _searchWidgetUiState.value = newValue
@@ -305,6 +306,21 @@ class MainViewModel: ViewModel() {
         }
     }
 
+    private fun initializingChapterPages(imageUrls: List<String>) {
+        _chapterPages.value.apply {
+            repeat(imageUrls.size) { i ->
+                add(
+                    Page(
+                        image = null,
+                        num = i,
+                        state = PageState.LOADING,
+                        url = imageUrls[i]
+                    )
+                )
+            }
+        }
+    }
+
     fun clearSearchedManga() {
         _searchedManga.value.clear()
         repeat(10) {
@@ -346,10 +362,14 @@ class MainViewModel: ViewModel() {
 
     fun loadChapterLinks(newValue: List<String>) {
         _chapterLinks.value.addAll(newValue)
+
+        initializingChapterPages(imageUrls = _chapterLinks.value)
     }
 
     fun clearChapterLinks() {
         _chapterLinks.value.clear()
+
+        _chapterPages.value.clear()
     }
 
     fun updateTrendyMangaIndex() {
@@ -361,6 +381,10 @@ class MainViewModel: ViewModel() {
 
     fun updateSearchedMangaError() {
         _searchedMangasError.value = ""
+    }
+
+    private fun updateUI() {
+        onUpdate.value = (0..1_000_000).random()
     }
 
     fun fetchData() {
@@ -1049,6 +1073,7 @@ class MainViewModel: ViewModel() {
             responseListener = object: FetchChapterData.ResponseListener {
                 override fun onSuccess(datas: MutableList<String>) {
                     loadChapterLinks(newValue = datas)
+                    Log.e("CHAPTER_PAGE_IMAGES_URL_SIZE", _chapterLinks.value.toString())
                 }
 
                 override fun onError(message: String) {
@@ -1058,6 +1083,39 @@ class MainViewModel: ViewModel() {
 
             }
         )
+    }
+
+
+    suspend fun loadChapterPages(
+        context: Context
+    ) {
+
+        Log.e("CHAPTER_PAGE_SIZE", _chapterPages.value.size.toString())
+        for (page in _chapterPages.value) {
+            UrlConverter().urlToBitmap(
+                context = context,
+                imageUrl = page.url!!,
+                bitmapResult = object: BitmapResult {
+                    override fun onSuccess(bitmap: Bitmap) {
+
+                        page.image = bitmap
+                        page.state = PageState.LOADED
+
+                        Log.e("LOADED_PAGE", "Loaded Page ${page.num}")
+                    }
+
+                    override fun onFailure(bitmap: Bitmap?) {
+
+                        page.state = PageState.FAILED
+
+                        Log.e("FAILED_PAGE", "Failed to Load Page ${page.num}")
+                    }
+
+                }
+            )
+
+            updateUI()
+        }
     }
 
 
